@@ -1,0 +1,96 @@
+---
+title: "SM Exercise 11.8"
+author: "Kristine Villaluna"
+date: "19/02/2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## SM Exercise 11.8
+A forensic laboratory assesses if the DNA profile from a specimen found at a crime scene matches the DNA profile of a suspect. The technology is not perfect, as there is a (small) probability $\rho$ that a match occurs by chance even if the suspect was not present at the scene, and a (larger) probability $\gamma$ that a match is  reported even if the profiles are different; this can arise due to laboratory error such as cross-contamination or accidental switching of profiles.
+
+### 1. Let $R, S$, and $M$ denote the events that a match is reported, that the specimen does indeed come from the suspect, and that there is a match between the profiles, and suppose that
+
+$$
+\begin{aligned}
+\Pr(R\mid M\cap S) &= \Pr(R\mid M \cap \bar S) = \Pr(R\mid M) =1,  \\ 
+\Pr(\bar M\mid S) &= 0,  \quad \Pr(R\mid S)=1.
+\end{aligned}
+$$
+
+### Show that the posterior odds of the profiles matching, given that a match has been reported, depend on 
+$$
+\frac{\Pr(R\mid S)}{\Pr(R\mid \bar S)} = \frac{\Pr(R\mid M\cap S)\Pr(M\mid S)
++ \Pr(R\mid \bar M \cap S)\Pr(\bar M\mid S)}{\Pr(R\mid M\cap \bar S)\Pr(M\mid \bar 
+S) + \Pr(R\mid \bar M \cap \bar S)\Pr(\bar M\mid \bar S)},
+$$
+
+### and establish that this is $\{\rho + \gamma(1-\rho)\}^{-1}$.
+
+From the information given in the question, let us suppose $\rho=\Pr(M|\bar{S})$ and $\gamma=\Pr(R|\bar{M})$.
+
+Assuming $\Pr(R\mid M\cap S)=(R\mid M\cap \bar{S}) = \Pr(R |M) = 1$, we then have that $R$ is conditionally independent of $S$, conditional on $M$. 
+
+Note that the complement events are also independent, and so $R$ is also conditionally independent of $\bar{S}$, conditional on $\bar{M}$.
+
+Thus, we can show the desired result as follows:
+$$
+\begin{aligned}
+\frac{\Pr(R \mid S)}{\Pr(R \mid \bar{S})} &=\frac{\Pr(R \mid M \cap S) \Pr(M \mid S)+\Pr(R \mid \bar{M} \cap S) \Pr(\bar{M} \mid S)}{\Pr(R \mid M \cap \bar{S}) \Pr(M \mid \bar{S})+\Pr(R \mid \bar{M} \cap \bar{S}) \Pr(\bar{M} \mid \bar{S})} \\
+&=\frac{(1) \Pr(M \mid S)+\Pr(R \mid \bar{M} \cap S)(0)}{(1) \Pr(M \mid \bar{S})+\Pr(R \mid \bar{M} \cap \bar{S}) \Pr(\bar{M} \mid \bar{S})} \quad \text { based on assumptions } \\
+&=\frac{\Pr(M \mid S)}{\Pr(M \mid \bar{S})+\Pr(R \mid \bar{M} \cap \bar{S}) \Pr(\bar{M} \mid \bar{S})} \\
+&=\frac{\Pr(M \mid S)+\Pr(\bar{M} \mid S)}{\Pr(M \mid \bar{S})+\Pr(R \mid \bar{M} \cap \bar{S}) \Pr(\bar{M} \mid \bar{S})} \quad \text { since } \Pr(\bar{M} \mid S)=0 \\
+&=\frac{1}{\Pr(M \mid \bar{S})+\Pr(R \mid \bar{M} \cap \bar{S}) \Pr(\bar{M} \mid \bar{S})} \\
+&=\frac{1}{\Pr(M \mid \bar{S})+\Pr(R \mid \bar{M} \cap \bar{S})(1-\Pr(M \mid \bar{S}))} \\
+&=\frac{1}{\Pr(M \mid \bar{S})+\Pr(R \mid \bar{M})(1-\Pr(M \mid \bar{S}))} \quad \text { since } R \perp \bar{S} |  \bar{M} \\
+&= \frac{1}{\rho + \gamma(1-\rho)}\\
+&= \{\rho + \gamma(1-\rho)\}^{-1} \\
+\end{aligned}
+$$
+
+Next, we can show how the posterior odds of the profiles matching, given that a match has been reported, depend on the expression above. 
+
+The posterior odds that we are interested in computing is:
+
+$$
+\frac{\Pr(S \mid R)}{\Pr(\bar{S} \mid R)}
+$$
+
+Then,
+
+$$
+\begin{aligned}
+\frac{\Pr(S \mid R)}{\Pr(\bar{S} \mid R)} &=\frac{\frac{\Pr(S \cap R)}{\Pr(R)}}{\frac{\Pr(\bar{S} \cap R)}{\Pr(R)}} \\
+&=\frac{\Pr(S \cap R)}{\Pr(\bar{S} \cap R)} \\
+&=\frac{\Pr(R \mid S) \Pr(S)}{\Pr(R \mid \bar{S}) \Pr(\bar{S})} \\
+&=\frac{\Pr(R \mid S)}{\Pr(R \mid \bar{S})} \frac{\Pr(S)}{\Pr(\bar{S})}
+\end{aligned}
+$$
+
+Therefore, the posterior odds of the profile matching, given that a match has been report, depends on $\frac{\Pr(R \mid S)}{\Pr(R \mid \bar{S})}$.
+
+### 2. Tabulate $\Pr(R\mid S)/\Pr(R\mid \bar S)$ when $\rho = 0, 10^{-9}, 10^{-6}, 10^{-3}$ and $\gamma = 0, 10^{-4}, 10^{-3}, 10^{-2}$. 
+
+```{r}
+# set values
+r <- c(0,1e-9,1e-6,1e-3)
+g <- c(0, 1e-4,1e-3,1e-2)
+
+combinations <- expand.grid(rhos=r,gammas=g)
+combinations <- combinations[order(combinations$rhos), ]
+
+# get posterior odds
+post_odd <- function(combos){
+  1/(combos$rhos + combos$gammas*(1-combos$rhos))
+}
+
+post_odds <- post_odd(combinations)
+
+# create table
+df <- data.frame(cbind(combinations, post_odds))
+df
+```
+
